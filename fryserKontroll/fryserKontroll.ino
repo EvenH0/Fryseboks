@@ -5,8 +5,9 @@
 //@ TODO: update with correct pins
 const int AMBIENT_TEMP_SERNSOR    =    0;
 const int COMPRESSOR_TEMP_SENSOR  =    0;
-const int FREEZER                 =    9;
-const int HEATER                  =   10;
+const int FREEZER_TEMP_SENSOR     =    0;
+const int FREEZER_RELAY           =    9;
+const int HEATER_RELAY            =   10;
 const int REGULATOR_INTERVAL      = 3600;
 
 // Variables
@@ -55,7 +56,7 @@ void loop()
   if (ambientTemp <= -15)
   {
     // Freezer relay is N.C
-    digitalWrite(FREEZER, HIGH);
+    digitalWrite(FREEZER_RELAY, HIGH);
   }
   else 
   {
