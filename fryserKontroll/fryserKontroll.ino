@@ -10,10 +10,11 @@
 #define TEMPERATURE_PRECISION          9
 
 // Global Variables
-int ambientTemp                   =    0;
-int compressorTemp                =    0;
-int freezerTemp                   =    0;
-int timer                         =    0;
+int     ambientTemp               =    0;
+int     compressorTemp            =    0;
+int     freezerTemp               =    0;
+int     timer                     =    0;
+bool    alive                     = true;
 
 // initialize the LiquidCrystal library with the numbers of the interface pins
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
@@ -31,10 +32,10 @@ void setup() {
   // LCD setup
   lcd.begin(16, 2);
   lcd.print("Ute:");
-  lcd.setCursor(7, 0);
+  lcd.setCursor(8, 0);
   lcd.print("Boks:");
-  lcd.setCursor(0, 1);
-  lcd.print("Kompressor:");
+  lcd.setCursor(8, 1);
+  lcd.print("Komp:");
 
   // Setup serial for status dump
   Serial.begin(9600);
@@ -103,13 +104,18 @@ void loop()
   }
   
   // Update Display
-  //@ TODO: Limit decimals when printing
+  // Temp
   lcd.setCursor(4, 0);
   lcd.print(ambientTemp);
-  lcd.setCursor(12, 0);
+  lcd.setCursor(13, 0);
   lcd.print(freezerTemp);
-  lcd.setCursor(12, 1);
+  lcd.setCursor(13, 1);
   lcd.print(compressorTemp);
+  // Alive?
+  lcd.setCursor(0,1);
+  (alive)?(lcd.print("A")):(lcd.print(" "));
+  alive = !alive;
+  
 
   // Hang a bit, get loop time ~1sec
   delay(900);
@@ -118,6 +124,8 @@ void loop()
 
 void freezerControl()
 {
+  lcd.setCursor(1,1);
+  lcd.print(" ");
   if (ambientTemp <= -15)
   {
     // It's cold outside turn off the freezer
@@ -132,13 +140,14 @@ void freezerControl()
   }
   else 
   {
-    // Need Heater?
-    // If heating wait 10min and try again
+    // Don't start if heater is needed/running
     if (!heaterControl())
     {
       // It's time to FREEZE!
       // N.C relay
       digitalWrite(FREEZER_RELAY, LOW);
+      lcd.setCursor(1,1);
+      lcd.print("F");
     }
   }
 }
@@ -146,11 +155,15 @@ void freezerControl()
 bool heaterControl()
 {
   bool heating = false;
+  lcd.setCursor(2,1);
+  lcd.print(" ");
   if (compressorTemp <= -4)
   {
     digitalWrite(HEATER_RELAY, HIGH);
     heating = true;
-    // Heat for 10 min and check again.
+    lcd.setCursor(2,1);
+    lcd.print("H");
+    // Force new check in ~10min
     timer = (REGULATOR_INTERVAL - 600);
   }
   else
